@@ -1,0 +1,15 @@
+# VS Code
+.vscode/
+.cmake/
+compile_commands.json
+desktop.ini
+
+# Zed
+.zed/
+
+#Testing
+*.log
+
+# Build Files
+Fireplace
+*.exe
