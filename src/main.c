@@ -1,7 +1,3 @@
-#include "stdio.h"
-#include "globals.h"
-#include "SDL2/SDL.h"
-
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
@@ -11,8 +7,14 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_IMPLEMENTATION
 #define NK_SDL_RENDERER_IMPLEMENTATION
-#include "nuklear.h"
+
+#include "stdio.h"
+#include "globals.h"
+#include "SDL2/SDL.h"
 #include "nuklear_sdl_renderer.h"
+#include "menu.h"
+#include "color.h"
+
 
 
 // The window we'll be rendering to
@@ -103,6 +105,7 @@ int main(void) {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) goto cleanup;
             if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_q && SDL_GetModState() & KMOD_CTRL) goto cleanup;
+            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) goto cleanup;
             nk_sdl_handle_event(&e);
         }
         nk_sdl_handle_grab(); /* optional grabbing behavior */
@@ -110,44 +113,23 @@ int main(void) {
 
 
         /* GUI */
-        if (nk_begin(ctx, PROJECT_NAME, nk_rect(10, 10, 200, 300),
-            NK_WINDOW_BORDER|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-        {
-            enum {EASY, HARD};
-            static int op = EASY;
-            static int property = 20;
-
-            nk_layout_row_dynamic(ctx, 30, 1);
-            if (nk_button_label(ctx, "button"))
-                fprintf(stdout, "button pressed\n");
-            nk_layout_row_dynamic(ctx, 30, 2);
-            if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
-            if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
-            nk_layout_row_dynamic(ctx, 25, 1);
-            nk_property_int(ctx, "Compression:", 0, &property, 100, 10, 1);
-
-            nk_layout_row_dynamic(ctx, 20, 1);
-            nk_label(ctx, "background:", NK_TEXT_LEFT);
-            nk_layout_row_dynamic(ctx, 40, 1);
-            if (nk_combo_begin_color(ctx, nk_rgb_cf(bg), nk_vec2(nk_widget_width(ctx),400))) {
-                nk_layout_row_dynamic(ctx, 120, 1);
-                bg = nk_color_picker(ctx, bg, NK_RGBA);
-                nk_layout_row_dynamic(ctx, 25, 1);
-                bg.r = nk_propertyf(ctx, "#R:", 0, bg.r, 1.0f, 0.01f,0.005f);
-                bg.g = nk_propertyf(ctx, "#G:", 0, bg.g, 1.0f, 0.01f,0.005f);
-                bg.b = nk_propertyf(ctx, "#B:", 0, bg.b, 1.0f, 0.01f,0.005f);
-                bg.a = nk_propertyf(ctx, "#A:", 0, bg.a, 1.0f, 0.01f,0.005f);
-                nk_combo_end(ctx);
-            }
-        }
-        nk_end(ctx);
+        draw_menu(ctx);
 
 		// Draw
+        // BG
         SDL_SetRenderDrawColor(renderer, bg.r * 255, bg.g * 255, bg.b * 255, bg.a * 255);
         SDL_RenderClear(renderer);
 
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        SDL_RenderDrawLine(renderer, 100,100,50,50);
+
+        struct SDL_Rect rect;
+        rect.y = 400;
+        rect.w = pixel_size-1;
+        rect.h = pixel_size-1;
+        for(int i = 0; i < base_width; i++){
+            rect.x = (300-((base_width*pixel_size)/2)) + (i*pixel_size);
+            SDL_SetRenderDrawColor(renderer, NK_TO_SDL_COL(linear_color(c1,c2,(float)i/(float)base_width)));
+            SDL_RenderFillRect(renderer, &rect);
+        }
 
 		// Render
         nk_sdl_render(NK_ANTI_ALIASING_ON);

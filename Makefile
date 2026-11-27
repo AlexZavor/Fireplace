@@ -6,7 +6,7 @@ CFLAGS += -Wall -Wextra
 #CFLAGS += -O2
 CFLAGS += `sdl2-config --cflags`
 
-SRC = src/main.c
+SRC = src/main.c src/color.c src/menu.c
 OBJ = $(SRC:.c=.o)
 
 LIBS += -lm -ldl `sdl2-config --libs`
